@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marcus & Martinus — Live Dates</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #000;
+    color: #fff;
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* NAV */
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 40px;
+    border-bottom: 1px solid #111;
+    position: sticky;
+    top: 0;
+    background: rgba(0,0,0,0.94);
+    backdrop-filter: blur(14px);
+    z-index: 100;
+  }
+  .nav-logo {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #fff;
+    text-decoration: none;
+  }
+  .nav-count {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #444;
+  }
+
+  /* SETUP BAR */
+
+  /* HERO */
+  .hero {
+    padding: 72px 40px 56px;
+    border-bottom: 1px solid #111;
+  }
+  .hero-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #444;
+    margin-bottom: 20px;
+  }
+  .hero-title {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(40px, 8vw, 96px);
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    text-transform: lowercase;
+    margin-bottom: 36px;
+  }
+  .hero-title .dim { color: #2a2a2a; }
+  .hero-actions { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .btn-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    color: #000;
+    border: none;
+    padding: 13px 26px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: opacity 0.15s;
+  }
+  .btn-search:hover { opacity: 0.88; }
+  .btn-search:disabled { opacity: 0.25; cursor: not-allowed; }
+  .hero-meta { font-size: 12px; color: #444; letter-spacing: 0.03em; }
+
+  /* STATUS */
+  .status-row {
+    padding: 11px 40px;
+    border-bottom: 1px solid #111;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    color: #444;
+    letter-spacing: 0.06em;
+    min-height: 42px;
+  }
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #222;
+    flex-shrink: 0;
+    transition: background 0.3s;
+  }
+  .status-dot.loading { background: #fbbf24; animation: blink 0.9s ease-in-out infinite; }
+  .status-dot.success { background: #4ade80; }
+  .status-dot.error   { background: #f87171; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
+
+  /* CONTROLS */
+  .controls-row {
+    padding: 14px 40px;
+    border-bottom: 1px solid #111;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .filter-group { display: flex; }
+  .filter-btn {
+    background: none;
+    border: 1px solid #1a1a1a;
+    color: #444;
+    padding: 6px 14px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-right: -1px;
+  }
+  .filter-btn:first-child { border-radius: 2px 0 0 2px; }
+  .filter-btn:last-child  { border-radius: 0 2px 2px 0; margin-right: 0; }
+  .filter-btn.active { background: #fff; color: #000; border-color: #fff; z-index: 1; }
+  .filter-btn:hover:not(.active) { color: #fff; border-color: #333; }
+  .count-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: #333;
+    letter-spacing: 0.08em;
+  }
+
+  /* EVENTS */
+  .events-list { padding: 0 40px; }
+
+  .event-row {
+    display: grid;
+    grid-template-columns: 88px 1fr auto;
+    align-items: center;
+    gap: 28px;
+    padding: 26px 0;
+    border-bottom: 1px solid #111;
+    animation: fadeUp 0.28s ease both;
+    cursor: default;
+    transition: background 0.12s;
+  }
+  .event-row:hover {
+    background: rgba(255,255,255,0.025);
+    margin: 0 -40px;
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .event-date { font-family: 'Space Mono', monospace; }
+  .event-date-day {
+    font-size: 38px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.05em;
+  }
+  .event-date-rest {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #444;
+    margin-top: 5px;
+  }
+
+  .event-body { min-width: 0; }
+  .event-name {
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    margin-bottom: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .event-location {
+    font-size: 12px;
+    color: #555;
+    letter-spacing: 0.02em;
+    text-transform: lowercase;
+    margin-bottom: 10px;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 3px 7px;
+    border: 1px solid;
+    border-radius: 2px;
+    font-weight: 600;
+  }
+  .badge-festival { color: #fbbf24; border-color: rgba(251,191,36,0.25); }
+  .badge-concert  { color: #555;    border-color: #222; }
+  .badge-tour     { color: #4ade80; border-color: rgba(74,222,128,0.25); }
+
+  .event-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
+  .ticket-btn {
+    display: inline-block;
+    padding: 7px 14px;
+    border: 1px solid #222;
+    color: #aaa;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 2px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .ticket-btn:hover { background: #fff; color: #000; border-color: #fff; }
+
+  /* EMPTY */
+  .empty-state { padding: 72px 0; }
+  .empty-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    text-transform: lowercase;
+    letter-spacing: -0.03em;
+    color: #1a1a1a;
+    margin-bottom: 40px;
+  }
+  .how-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0;
+  }
+  .how-step { padding: 24px 32px 24px 0; border-top: 1px solid #111; }
+  .how-num { font-family: 'Space Mono', monospace; font-size: 10px; color: #222; margin-bottom: 10px; letter-spacing: 0.1em; }
+  .how-text { font-size: 12px; color: #444; line-height: 1.55; }
+
+  /* FOOTER */
+  footer {
+    padding: 22px 40px;
+    border-top: 1px solid #111;
+    margin-top: 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 10px;
+    color: #222;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .footer-right { color: #333; }
+
+  .spin { display: inline-block; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 600px) {
+    nav, .hero, .status-row, .controls-row, .events-list, footer {
+      padding-left: 20px; padding-right: 20px;
+    }
+    .hero { padding-top: 44px; padding-bottom: 36px; }
+    .hero-title { font-size: 40px; }
+    .event-row { grid-template-columns: 68px 1fr; gap: 16px; }
+    .event-right { display: none; }
+    .event-date-day { font-size: 28px; }
+    .event-name { font-size: 15px; }
+    .event-row:hover { margin: 0 -20px; padding-left: 20px; padding-right: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="#">M&amp;M Tracker</a>
+  <span class="nav-count" id="navCount"></span>
+</nav>
+
+
+
+<section class="hero">
+  <div class="hero-eyebrow">Marcus &amp; Martinus — Live Dates</div>
+  <h1 class="hero-title">all shows<br><span class="dim">&amp; festivals</span></h1>
+  <div class="hero-actions">
+    <button class="btn-search" id="refreshBtn" onclick="fetchEvents()">
+      <span id="refreshIcon">↻</span>
+      <span id="refreshText">Search for Events</span>
+    </button>
+    <span class="hero-meta" id="heroMeta">AI-powered search: Ticketmaster, Songkick, Norwegian festivals & more</span>
+  </div>
+</section>
+
+<div class="status-row">
+  <div class="status-dot" id="statusDot"></div>
+  <span id="statusText">Waiting for API key</span>
+</div>
+
+<div class="controls-row" id="controlsRow" style="display:none">
+  <div class="filter-group">
+    <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+    <button class="filter-btn" onclick="setFilter('festival',this)">Festivals</button>
+    <button class="filter-btn" onclick="setFilter('concert',this)">Concerts</button>
+    <button class="filter-btn" onclick="setFilter('tour',this)">Tour</button>
+  </div>
+  <span class="count-label" id="countLabel">–</span>
+</div>
+
+<div class="events-list" id="eventsGrid">
+  <div class="empty-state">
+    <div class="empty-title">no dates yet.</div>
+    <div class="how-grid">
+      <div class="how-step"><div class="how-num">01 —</div><div class="how-text">Add your Anthropic API key above</div></div>
+      <div class="how-step"><div class="how-num">02 —</div><div class="how-text">Click Search — AI queries multiple sources simultaneously</div></div>
+      <div class="how-step"><div class="how-num">03 —</div><div class="how-text">Concerts, festivals & new announcements merged into one list</div></div>
+      <div class="how-step"><div class="how-num">04 —</div><div class="how-text">Results cached — reloads instantly next visit</div></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>M&amp;M Tracker — fan-made, not official</span>
+  <span class="footer-right" id="footerUpdate"></span>
+</footer>
+
+<script>
+let allEvents = [];
+let currentFilter = 'all';
+
+window.addEventListener('load', () => {
+  const cached = localStorage.getItem('mm_events_cache');
+  const cachedTime = localStorage.getItem('mm_events_time');
+  if (cached) {
+    try {
+      allEvents = JSON.parse(cached);
+      renderEvents(allEvents);
+      showControls();
+      document.getElementById('footerUpdate').textContent = 'Updated: ' + (cachedTime || '–');
+      setStatus('success', allEvents.length + ' events loaded from cache — click Refresh to update');
+    } catch(e) {}
+  } else {
+    setStatus('ready', 'Click “Search for Events” to load dates');
+  }
+});
+
+function setStatus(type, text) {
+  const dot = document.getElementById('statusDot');
+  dot.className = 'status-dot' + (type !== 'ready' ? ' ' + type : '');
+  document.getElementById('statusText').textContent = text;
+}
+
+function showControls() {
+  document.getElementById('controlsRow').style.display = 'flex';
+  const visible = currentFilter === 'all' ? allEvents : allEvents.filter(e => e.type === currentFilter);
+  const c = visible.length;
+  document.getElementById('countLabel').textContent = c + ' event' + (c !== 1 ? 's' : '');
+  document.getElementById('navCount').textContent = allEvents.length + ' events';
+}
+
+const VERCEL_API = 'https://mmtracker-one.vercel.app/api/search';
+
+async function callClaude(prompt) {
+  const r = await fetch(VERCEL_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 2000,
+      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  if (!r.ok) { const e = await r.json(); throw new Error(e.error?.message || 'HTTP ' + r.status); }
+  const d = await r.json();
+  return d.content.filter(b => b.type === 'text').map(b => b.text).join('');
+}
+
+async function fetchEvents() {
+  const btn = document.getElementById('refreshBtn');
+  btn.disabled = true;
+  document.getElementById('refreshIcon').innerHTML = '<span class="spin">↻</span>';
+  document.getElementById('refreshText').textContent = 'Searching…';
+
+  const today = new Date().toISOString().split('T')[0];
+  const year  = new Date().getFullYear();
+  const jsonRule = '\nReturn ONLY a raw JSON array — no text, no markdown:\n[{"date":"YYYY-MM-DD","name":"...","city":"...","country":"...","venue":"...","type":"concert|festival|tour","ticketUrl":"...","source":"..."}]\nOnly events from ' + today + '. Omit ticketUrl if unknown.';
+
+  const searches = [
+    {
+      label: 'Searching Songkick & Setlist.fm…',
+      prompt: 'Find all upcoming Marcus & Martinus concerts and tour dates in ' + year + ' on Songkick and Setlist.fm. Return every individual date with exact day, city, country and venue.' + jsonRule
+    },
+    {
+      label: 'Searching Ticketmaster & Live Nation…',
+      prompt: 'Search Ticketmaster and all regional Live Nation sites (livenation.no, livenation.se, livenation.fi, livenation.ee, livenation.dk, livenation.co.uk etc.) for all upcoming Marcus & Martinus events in ' + year + '. Return every result found.' + jsonRule
+    },
+    {
+      label: 'Searching Norwegian & Scandinavian sources…',
+      prompt: 'Search Norwegian and Scandinavian sources for all upcoming Marcus & Martinus concerts, festivals and outdoor events in ' + year + '. Use Norwegian queries: \"Marcus Martinus konsert ' + year + '\", \"Marcus Martinus festival ' + year + '\", \"Marcus Martinus booket\", \"Marcus Martinus sommer ' + year + '\", \"Marcus og Martinus ' + year + '\". Check: vg.no, dagbladet.no, nrk.no, f-b.no, adressa.no, ba.no, aftenbladet.no, tv2.no, and any Norwegian festival or venue sites.' + jsonRule
+    },
+    {
+      label: 'Searching Baltic & Central European ticket sites…',
+      prompt: 'Find upcoming Marcus & Martinus concerts in ' + year + ' on local Baltic and Central/Eastern European ticket platforms: piletilevi.ee (Estonia), bilietai.lt (Lithuania), bilesuserviss.lv (Latvia), ticketportal.cz, ticketportal.sk, eventim.de, eventim.at, eventim.pl, ebilet.pl. Return every date found.' + jsonRule
+    },
+    {
+      label: 'Searching new announcements…',
+      prompt: 'Find the most recently announced upcoming Marcus & Martinus shows in ' + year + ' not yet on major platforms. Search: \"Marcus Martinus announced ' + year + '\", \"Marcus Martinus billetter ' + year + '\", \"Marcus Martinus new show ' + year + '\". Also check ticketmaster.no, ticketmaster.se, ticketmaster.dk, ticketmaster.fi.' + jsonRule
+    }
+  ];
+
+  const allFound = [];
+  try {
+    for (let i = 0; i < searches.length; i++) {
+      setStatus('loading', '[' + (i+1) + '/' + searches.length + '] ' + searches[i].label);
+      try {
+        const text = await callClaude(searches[i].prompt);
+        const match = text.match(/\[[\s\S]*\]/);
+        if (match) {
+          allFound.push(...JSON.parse(match[0]));
+          const merged = mergeEvents(allFound);
+          renderEvents(merged);
+          showControls();
+        }
+      } catch(e) { console.warn('Search ' + (i+1) + ' failed:', e); }
+    }
+
+    setStatus('loading', 'Merging results…');
+    allEvents = mergeEvents(allFound);
+    const ts = new Date().toLocaleString('en-GB');
+    localStorage.setItem('mm_events_cache', JSON.stringify(allEvents));
+    localStorage.setItem('mm_events_time', ts);
+    renderEvents(allEvents);
+    showControls();
+    document.getElementById('footerUpdate').textContent = 'Updated: ' + ts;
+    setStatus('success', allEvents.length + ' events found across ' + searches.length + ' searches');
+  } catch(err) {
+    console.error(err);
+    setStatus('error', 'Error: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    document.getElementById('refreshIcon').textContent = '↻';
+    document.getElementById('refreshText').textContent = 'Refresh';
+  }
+}
+
+function mergeEvents(events) {
+  const seen = new Map();
+  for (const ev of events) {
+    if (!ev.date || !ev.city) continue;
+    const key = ev.date + '_' + (ev.city||'').toLowerCase().trim().slice(0,6);
+    if (!seen.has(key)) { seen.set(key, {...ev}); }
+    else {
+      const m = seen.get(key);
+      if (!m.ticketUrl && ev.ticketUrl) m.ticketUrl = ev.ticketUrl;
+      if (!m.venue    && ev.venue)     m.venue = ev.venue;
+      if (!m.source   && ev.source)    m.source = ev.source;
+    }
+  }
+  return [...seen.values()].sort((a,b) => a.date.localeCompare(b.date));
+}
+
+function setFilter(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = filter === 'all' ? allEvents : allEvents.filter(e => e.type === filter);
+  renderEvents(filtered);
+  const c = filtered.length;
+  document.getElementById('countLabel').textContent = c + ' event' + (c !== 1 ? 's' : '');
+}
+
+function renderEvents(events) {
+  const grid = document.getElementById('eventsGrid');
+  if (!events.length) {
+    grid.innerHTML = '<div class="empty-state"><div class="empty-title">no results.</div></div>';
+    return;
+  }
+  const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const bc  = { festival:'badge-festival', concert:'badge-concert', tour:'badge-tour' };
+  const bl  = { festival:'Festival', concert:'Concert', tour:'Tour' };
+  grid.innerHTML = events.map((ev, i) => {
+    const d   = new Date(ev.date + 'T12:00:00');
+    const day = isNaN(d) ? '?' : d.getDate();
+    const mon = isNaN(d) ? '' : MON[d.getMonth()];
+    const yr  = isNaN(d) ? '' : d.getFullYear();
+    const loc = [ev.city, ev.country].filter(Boolean).join(', ').toLowerCase();
+    const ven = ev.venue ? ' · ' + ev.venue.toLowerCase() : '';
+    const delay = Math.min(i * 0.035, 0.5);
+    return `
+      <div class="event-row" style="animation-delay:${delay}s">
+        <div class="event-date">
+          <div class="event-date-day">${day}</div>
+          <div class="event-date-rest">${mon} ${yr}</div>
+        </div>
+        <div class="event-body">
+          <div class="event-name">${h(ev.name)}</div>
+          <div class="event-location">${h(loc)}${h(ven)}</div>
+          <span class="badge ${bc[ev.type]||'badge-concert'}">${bl[ev.type]||'Concert'}</span>
+        </div>
+        <div class="event-right">
+          ${ev.ticketUrl ? `<a class="ticket-btn" href="${h(ev.ticketUrl)}" target="_blank" rel="noopener">Tickets →</a>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function h(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
